@@ -1,0 +1,9 @@
+package {{.Pkg}}
+
+func (a *{{.Name}})Equals(b *{{.Name}})bool{{"{"}}
+    {{range .Fields}}if a.{{.Name}}!=b.{{.Name}}{
+        return false
+    }
+    {{end}}
+    return true
+{{"}"}}
