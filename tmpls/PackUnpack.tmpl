@@ -1,0 +1,54 @@
+package {{.Pkg}}
+
+import (
+    "bytes"
+    "encoding/binary"
+    "unsafe"
+    {{if .HasTagKey "custom"}}
+    "encoding/base64"
+    {{end}}
+)
+
+var nativeendian{{.Name}} binary.ByteOrder
+
+func nativeEndian{{.Name}}()binary.ByteOrder {
+	if nativeendian{{.Name}} == nil {
+		var i int = 0x1
+		bs := (*[int(unsafe.Sizeof(0))]byte)(unsafe.Pointer(&i))
+		if bs[0] == 0 {
+			nativeendian{{.Name}} = binary.BigEndian
+		} else {
+			nativeendian{{.Name}} = binary.LittleEndian
+		}
+	}
+	return nativeendian{{.Name}}
+}
+
+
+func (a *{{.Name}})Pck()[]byte{
+    buf := &bytes.Buffer{}
+    endian :=  nativeEndian{{.Name}}()
+
+
+    {{range .Fields}}
+        {{if and (not .Slice) (not .Tag.custom) }}
+            {{if or (contains .Type "int") (eq .Type "byte") }}
+    binary.Write(buf, endian, a.{{.Name}} )
+            {{end}}
+            {{if contains .Type "string" }}
+    ary{{.Name}} := [{{.Tag.len}}]byte{}
+    copy(ary{{.Name}}[:],[]byte(a.{{.Name}}))
+    binary.Write(buf, endian, ary{{.Name}} )
+            {{end}}
+        {{end}}
+        {{if and (not .Slice) (.Tag.custom) }}
+            {{if contains .Type "string" }}
+    tmp{{.Name}},_ := base64.StdEncoding.DecodeString(a.{{.Name}})
+    ary{{.Name}} := [{{.Tag.len}}]byte{}
+    copy(ary{{.Name}}[:],tmp{{.Name}})
+    binary.Write(buf, endian, ary{{.Name}} )
+            {{end}}
+        {{end}}
+    {{end}}
+    return buf.Bytes()
+}

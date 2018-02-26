@@ -47,6 +47,7 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -69,13 +70,26 @@ type Struct struct {
 	Fields []Field //Fields of struct
 }
 
+//Checks if key in tag config string
+func (s *Struct)HasTagKey(k string)bool{
+	for _,f := range s.Fields{
+		for tkey,_ := range f.Tag{
+			if k == tkey{
+				return true
+			}
+		}
+	}
+	return false
+}
+
 var deftag = "mg"
 
 //ProcTag processes the field tag for our tag 'mg'
 func ProcTag(tagfull string) map[string]string {
 	out := make(map[string]string)
 
-	tagdecs := strings.Split(tagfull, "`")
+	tagdecstmp := strings.Trim(tagfull, "`")
+	tagdecs := strings.Split(tagdecstmp, " ")
 	for _, tagdec := range tagdecs {
 		tmptagdec := strings.Split(tagdec, ":")
 		if tmptagdec[0] == deftag {
@@ -186,6 +200,12 @@ func main() {
 	err = rndr.Execute(ofd, out)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	cmd := exec.Command("go","fmt",ofn)
+	_, err = cmd.Output()
+	if err != nil {
+		log.Fatal("Go format failed parsing output file\n"+err.Error())
 	}
 
 }

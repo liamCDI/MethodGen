@@ -1,5 +1,6 @@
 package somestruct
 
+//SomeStruct used as an example
 type SomeStruct struct {
 	SChar byte
 	UChar byte
@@ -12,6 +13,6 @@ type SomeStruct struct {
 	Str   string   `mg:"len=10"`
 }
 
-//go:generate methodgen -tmpl=$GOPATH/src/github.com/liamCDI/MethodGen/test/Equal.tmpl -struct=SomeStruct
+//go:generate methodgen -tmpl=$GOPATH/src/github.com/liamCDI/MethodGen/tmpls/Equal.tmpl -struct=SomeStruct
 
-//go:generate methodgen -tmpl=$GOPATH/src/github.com/liamCDI/MethodGen/test/PrintTag.tmpl -struct=SomeStruct
+//go:generate methodgen -tmpl=$GOPATH/src/github.com/liamCDI/MethodGen/tmpls/PrintTag.tmpl -struct=SomeStruct
