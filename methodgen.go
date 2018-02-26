@@ -37,7 +37,6 @@
 //Notes
 //
 // -currently does not support Slice or nested Structs (getting there)
-
 package main
 
 import (

@@ -32,6 +32,13 @@ Finally run the `go generate` to generate the function in its own file with the 
 The above example assumes the generate directive is in the same file as `SomeStruct`, if it is not then the file
 must be specified with the `-in` argument
 
+### Advanced Usage
+The struct tag `mg` can be used to store key value pairs in a Field's Tag Map. This allows for custom triggers in the tempalate
+see the `PrintTag.tmpl` for examples.
+
+### Notes
+-currently does not support Slice or nested Structs (getting there)
+
 
 
 
