@@ -71,10 +71,10 @@ type Struct struct {
 }
 
 //Checks if key in tag config string
-func (s *Struct)HasTagKey(k string)bool{
-	for _,f := range s.Fields{
-		for tkey,_ := range f.Tag{
-			if k == tkey{
+func (s *Struct) HasTagKey(k string) bool {
+	for _, f := range s.Fields {
+		for tkey, _ := range f.Tag {
+			if k == tkey {
 				return true
 			}
 		}
@@ -109,6 +109,10 @@ func ProcTag(tagfull string) map[string]string {
 		}
 	}
 	return out
+}
+
+func noescape(s string) template.HTML {
+	return template.HTML(s)
 }
 
 func main() {
@@ -177,6 +181,7 @@ func main() {
 	funcMap := template.FuncMap{
 		// The name "title" is what the function will be called in the template text.
 		"contains": strings.Contains,
+		"noescape": noescape,
 	}
 
 	rndr, err := template.New(filepath.Base(*tmpl)).Funcs(funcMap).ParseFiles(*tmpl)
@@ -202,10 +207,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("go","fmt",ofn)
+	cmd := exec.Command("go", "fmt", ofn)
 	_, err = cmd.Output()
 	if err != nil {
-		log.Fatal("Go format failed parsing output file\n"+err.Error())
+		log.Fatal("Go format failed parsing output file\n" + err.Error())
 	}
 
 }

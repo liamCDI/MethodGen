@@ -13,7 +13,7 @@ var nativeendian{{.Name}} binary.ByteOrder
 
 func nativeEndian{{.Name}}()binary.ByteOrder {
 	if nativeendian{{.Name}} == nil {
-		var i int = 0x1
+		var i = 0x1
 		bs := (*[int(unsafe.Sizeof(0))]byte)(unsafe.Pointer(&i))
 		if bs[0] == 0 {
 			nativeendian{{.Name}} = binary.BigEndian
@@ -24,11 +24,11 @@ func nativeEndian{{.Name}}()binary.ByteOrder {
 	return nativeendian{{.Name}}
 }
 
-
-func (a *{{.Name}})Pck()[]byte{
+//Pack Serialize the struct into a packed buffer
+func (a *{{.Name}})Pack()([]byte,error){
     buf := &bytes.Buffer{}
     endian :=  nativeEndian{{.Name}}()
-
+    var err error
 
     {{range .Fields}}
         {{if and (not .Slice) (not .Tag.custom) }}
@@ -43,12 +43,48 @@ func (a *{{.Name}})Pck()[]byte{
         {{end}}
         {{if and (not .Slice) (.Tag.custom) }}
             {{if contains .Type "string" }}
-    tmp{{.Name}},_ := base64.StdEncoding.DecodeString(a.{{.Name}})
+    tmp{{.Name}},err := base64.StdEncoding.DecodeString(a.{{.Name}})
+    if err != nil{
+        return nil,err
+    }
     ary{{.Name}} := [{{.Tag.len}}]byte{}
     copy(ary{{.Name}}[:],tmp{{.Name}})
     binary.Write(buf, endian, ary{{.Name}} )
             {{end}}
         {{end}}
     {{end}}
-    return buf.Bytes()
+    return buf.Bytes(),nil
+}
+
+//Unpack Unserialize a packed buffer into a struct
+func (a *{{.Name}})Unpack(in []byte)error{
+    buf := bytes.NewBuffer(in)
+    endian :=  nativeEndian{{.Name}}()
+    var idx int
+
+
+    {{range .Fields}}
+        {{if and (not .Slice) (not .Tag.custom) }}
+            {{if or (contains .Type "int") (eq .Type "byte") }}
+    binary.Read(buf, endian, &a.{{.Name}} )
+            {{end}}
+            {{if contains .Type "string" }}
+    b{{.Name}}:=[{{.Tag.len}}]byte{}
+    binary.Read(buf, endian, &b{{.Name}} )
+    idx = bytes.IndexByte(b{{.Name}}[:], 0)
+    if idx {{"<"|noescape}} 0 {
+        idx = len(b{{.Name}})
+    }
+    a.{{.Name}} = string(b{{.Name}}[:idx])
+            {{end}}
+        {{end}}
+        {{if and (not .Slice) (.Tag.custom) }}
+            {{if contains .Type "string" }}
+    b{{.Name}}:=[{{.Tag.len}}]byte{}
+    binary.Read(buf, endian, &b{{.Name}} )
+    a.{{.Name}} = base64.StdEncoding.EncodeToString(b{{.Name}}[:])
+            {{end}}
+        {{end}}
+    {{end}}
+    return nil
 }
