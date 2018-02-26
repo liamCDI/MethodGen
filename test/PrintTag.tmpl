@@ -1,0 +1,14 @@
+package {{.Pkg}}
+
+import "fmt"
+
+func (a *{{.Name}})String()string{{"{"}}
+    out := ""
+    {{range .Fields}}{{if not .Tag.omit}}
+        {{if or (contains .Type "int") (contains .Type "byte") }}
+    out +="{{.Name}}:"+fmt.Sprintf("%d",a.{{.Name}})+" "
+        {{else}}
+    out +="{{.Name}}:"+a.{{.Name}}+" "
+{{end}}{{end}}{{end}}
+    return out
+{{"}"}}

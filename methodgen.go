@@ -28,6 +28,16 @@
 //
 //The above example assumes the generate directive is in the same file as `SomeStruct`, if it is not then the file
 //must be specified with the `-in` argument
+//
+//Advanced Usage
+//
+//The struct tag `mg` can be used to store key value pairs in a Field's Tag Map. This allows for custom triggers in the tempalate
+//see the `PrintTag.tmpl` for examples.
+//
+//Notes
+//
+// -currently does not support Slice or nested Structs (getting there)
+
 package main
 
 import (
@@ -46,11 +56,11 @@ import (
 
 //Field is meant to represent the field declartions in a struct
 type Field struct {
-	Name  string //Name of field
-	Type  string //Type of Field. For an Array or slice, this is the element type
-	Tag   string //Tag of field
-	Slice bool   //Slice or Array Flag
-	Len   int    //Only used if Slice flag to true. If the value is not 0, then element is considered an Array with that length
+	Name  string            //Name of field
+	Type  string            //Type of Field. For an Array or slice, this is the element type
+	Tag   map[string]string //Tag of field
+	Slice bool              //Slice or Array Flag
+	Len   int               //Only used if Slice flag to true. If the value is not 0, then element is considered an Array with that length
 }
 
 //Struct is meant to
@@ -58,6 +68,34 @@ type Struct struct {
 	Name   string  //Name of struct
 	Pkg    string  //Name of Package
 	Fields []Field //Fields of struct
+}
+
+var deftag = "mg"
+
+//ProcTag processes the field tag for our tag 'mg'
+func ProcTag(tagfull string) map[string]string {
+	out := make(map[string]string)
+
+	tagdecs := strings.Split(tagfull, "`")
+	for _, tagdec := range tagdecs {
+		tmptagdec := strings.Split(tagdec, ":")
+		if tmptagdec[0] == deftag {
+			if len(tmptagdec) == 2 {
+				config := strings.Split(strings.Trim(tmptagdec[1], "\""), ",")
+				for _, conf := range config {
+					if strings.Contains(conf, "=") {
+						tmpconf := strings.Split(conf, "=")
+						out[tmpconf[0]] = tmpconf[1]
+					} else {
+						out[conf] = ""
+					}
+				}
+			} else {
+				return nil
+			}
+		}
+	}
+	return out
 }
 
 func main() {
@@ -99,20 +137,20 @@ func main() {
 		case *ast.TypeSpec:
 			if x.Name.Name == *strc {
 				fields := x.Type.(*ast.StructType).Fields.List
-				var tag string
+				var tag map[string]string
 				for _, field := range fields {
 					switch field.Type.(type) {
 					case *ast.Ident:
 						stype := field.Type.(*ast.Ident).Name
-						tag = ""
+						tag = nil
 						if field.Tag != nil {
-							tag = field.Tag.Value
+							tag = ProcTag(field.Tag.Value)
 						}
 						out.Fields = append(out.Fields, Field{field.Names[0].Name, stype, tag, false, 0})
 					case *ast.ArrayType:
-						tag = ""
+						tag = nil
 						if field.Tag != nil {
-							tag = field.Tag.Value
+							tag = ProcTag(field.Tag.Value)
 						}
 						aryln, _ := strconv.Atoi(field.Type.(*ast.ArrayType).Len.(*ast.BasicLit).Value)
 						out.Fields = append(out.Fields, Field{field.Names[0].Name, field.Type.(*ast.ArrayType).Elt.(*ast.Ident).Name, tag, true, aryln})
@@ -123,7 +161,12 @@ func main() {
 		return true
 	})
 
-	rndr, err := template.ParseFiles(*tmpl)
+	funcMap := template.FuncMap{
+		// The name "title" is what the function will be called in the template text.
+		"contains": strings.Contains,
+	}
+
+	rndr, err := template.New(filepath.Base(*tmpl)).Funcs(funcMap).ParseFiles(*tmpl)
 	if err != nil {
 		log.Fatal(err)
 	}
