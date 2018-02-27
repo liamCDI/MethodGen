@@ -3,6 +3,7 @@ package {{.Pkg}}
 import "fmt"
 
 func (a *{{.Name}})String()string{{"{"}}
+//{{.Name | toLower }}
     out := ""
     {{range .Fields}}{{if not .Tag.omit}}
         {{if or (contains .Type "int") (contains .Type "byte") }}

@@ -70,10 +70,10 @@ type Struct struct {
 	Fields []Field //Fields of struct
 }
 
-//Checks if key in tag config string
+//HasTagKey Checks if key in tag config string. Good to use to check if an import is needed
 func (s *Struct) HasTagKey(k string) bool {
 	for _, f := range s.Fields {
-		for tkey, _ := range f.Tag {
+		for tkey := range f.Tag {
 			if k == tkey {
 				return true
 			}
@@ -179,9 +179,50 @@ func main() {
 	})
 
 	funcMap := template.FuncMap{
-		// The name "title" is what the function will be called in the template text.
-		"contains": strings.Contains,
-		"noescape": noescape,
+		"compare":        strings.Compare,
+		"contains":       strings.Contains,
+		"containsAny":    strings.ContainsAny,
+		"containsRune":   strings.ContainsRune,
+		"count":          strings.Count,
+		"equalFold":      strings.EqualFold,
+		"fields":         strings.Fields,
+		"fieldsFunc":     strings.FieldsFunc,
+		"hasPrefix":      strings.HasPrefix,
+		"hasSuffix":      strings.HasSuffix,
+		"index":          strings.Index,
+		"indexAny":       strings.IndexAny,
+		"indexByte":      strings.IndexByte,
+		"indexFunc":      strings.IndexFunc,
+		"indexRune":      strings.IndexRune,
+		"join":           strings.Join,
+		"lastIndex":      strings.LastIndex,
+		"lastIndexAny":   strings.LastIndexAny,
+		"lastIndexByte":  strings.LastIndexByte,
+		"lastIndexFunc":  strings.LastIndexFunc,
+		"map":            strings.Map,
+		"repeat":         strings.Repeat,
+		"replace":        strings.Replace,
+		"split":          strings.Split,
+		"splitAfter":     strings.SplitAfter,
+		"splitAfterN":    strings.SplitAfterN,
+		"splitN":         strings.SplitN,
+		"title":          strings.Title,
+		"toLower":        strings.ToLower,
+		"toLowerSpecial": strings.ToLowerSpecial,
+		"toTitle":        strings.ToTitle,
+		"toTitleSpecial": strings.ToTitleSpecial,
+		"toUpper":        strings.ToUpper,
+		"toUpperSpecial": strings.ToUpperSpecial,
+		"trim":           strings.Trim,
+		"trimFunc":       strings.TrimFunc,
+		"trimLeft":       strings.TrimLeft,
+		"trimLeftFunc":   strings.TrimLeftFunc,
+		"trimPrefix":     strings.TrimPrefix,
+		"trimRight":      strings.TrimRight,
+		"trimRightFunc":  strings.TrimRightFunc,
+		"trimSpace":      strings.TrimSpace,
+		"trimSuffix":     strings.TrimSuffix,
+		"noescape":       noescape,
 	}
 
 	rndr, err := template.New(filepath.Base(*tmpl)).Funcs(funcMap).ParseFiles(*tmpl)
