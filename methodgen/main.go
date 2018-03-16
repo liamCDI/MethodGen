@@ -82,6 +82,16 @@ func (s *Struct) HasTagKey(k string) bool {
 	return false
 }
 
+//HasType Checks if a field type is in the struct
+func (s *Struct) HasType(k string) bool {
+	for _, f := range s.Fields {
+		if k == f.Type {
+			return true
+		}
+	}
+	return false
+}
+
 var deftag = "mg"
 
 //ProcTag processes the field tag for our tag 'mg'
@@ -115,11 +125,34 @@ func noescape(s string) template.HTML {
 	return template.HTML(s)
 }
 
+type extra struct {
+	vals []string
+}
+
+func (i *extra) String() string {
+	return "my string representation"
+}
+
+func (i *extra) Set(value string) error {
+	i.vals = append(i.vals, value)
+	return nil
+}
+func (i *extra) Get(idx int) string {
+	if idx > len(i.vals) || idx < 0 {
+		return ""
+	}
+	return i.vals[idx]
+}
+
+//Extra hold the extra strings
+var Extra extra
+
 func main() {
 	fin := flag.String("in", "", "File to be read. If omited, program will try to read enviroment variables set by `go generate`")
 	strc := flag.String("struct", "", "struct to add method to")
 	tmpl := flag.String("tmpl", "", "template file to render results")
 	pkg := flag.String("pkg", "", "package name. If omited, program will try to read enviroment variables set by `go generate`")
+	flag.Var(&Extra, "extra", "Extra values stored as a slice")
 
 	flag.Parse()
 
@@ -223,6 +256,7 @@ func main() {
 		"trimSpace":      strings.TrimSpace,
 		"trimSuffix":     strings.TrimSuffix,
 		"noescape":       noescape,
+		"extra":          Extra.Get,
 	}
 
 	rndr, err := template.New(filepath.Base(*tmpl)).Funcs(funcMap).ParseFiles(*tmpl)

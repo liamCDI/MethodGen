@@ -36,6 +36,22 @@ must be specified with the `-in` argument
 The struct tag `mg` can be used to store key value pairs in a Field's Tag Map. This allows for custom triggers in the tempalate
 see the `PrintTag.tmpl` for examples.
 
+Example:
+    type ClientIDRecord struct {
+         ID  string `db:"Id" mg:"pk=true,len=30"`
+         Key string `db:"Key" mg"len=48"`
+     }
+
+The tags `pk` and `len` can be used in the template like the following:
+
+    {{range .Fields}}
+     {{if .Tag.pk}}
+     //Get{{$.Name}} Get a single row in the table
+     func (c *CdiDB) Get{{$.Name}}(a {{.Type}}) ({{$.Name}}, error) {
+         out := {{$.Name}}{}
+or
+
+    ary{{.Name}} := [{{.Tag.len}}]byte{}	
 ### Notes
 -currently does not support Slice or nested Structs (getting there)
 
